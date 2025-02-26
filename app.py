@@ -32,7 +32,7 @@ class RestauranteGUI:
                        icon=ft.Icons.POINT_OF_SALE,
                        # content=
                 ),
-                ft.Tab(text='Administrracion',
+                ft.Tab(text='Administración',
                        icon=ft.Icons.ADMIN_PANEL_SETTINGS,
                        # content=
                     ),
@@ -71,22 +71,40 @@ class RestauranteGUI:
             estado = 'Libre' if not mesa.ocupado else 'Ocupada'
 
             grid.controls.append(
-                ft.Column(
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=5,
-                    controls=[
-                        ft.Row(
+                ft.Container(
+                    content=ft.Column(
                             alignment=ft.MainAxisAlignment.CENTER,
+                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                            spacing=5,
                             controls=[
-                                ft.Icon(ft.Icons.TABLE_RESTAURANT, color=ft.Colors.AMBER_400),
-                                ft.Text(f'Mesa {mesa.numero}', size=16, weight=ft.FontWeight.BOLD)
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    controls=[
+                                        ft.Icon(ft.Icons.TABLE_RESTAURANT, color=ft.Colors.AMBER_400),
+                                        ft.Text(f'Mesa {mesa.numero}', size=16, weight=ft.FontWeight.BOLD)
+                                    ]
+                                ),
+                                ft.Text(f'Capacidad {mesa.tamaño} personas', size=14),
+                                ft.Text(estado,
+                                        size=16,
+                                        weight=ft.FontWeight.BOLD,
+                                        color=ft.Colors.WHITE
+                                    )
                             ]
-                        )
-                    ]
+                        ),
+                    bgcolor=color,
+                    padding=5,
+                    margin=5,
+                    border_radius=5,
                 )
             )
         return grid
+
+    def seleccionar_mesa(self, e, numero_mesa):
+        self.mesa_seleccionada = self.restaurante.buscar_mesa(numero_mesa)
+        mesa = self.mesa_seleccionada
+
+        #self.mesa_info.value = f'Mesa {mesa.numero} - Capacidad: {mesa.tamaño} personas'
 
 def main():
     app = RestauranteGUI()
