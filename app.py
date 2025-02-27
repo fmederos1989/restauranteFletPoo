@@ -120,8 +120,8 @@ class RestauranteGUI:
     def seleccionar_mesa(self, e, numero_mesa):
         self.mesa_seleccionada = self.restaurante.buscar_mesa(numero_mesa)
         mesa = self.mesa_seleccionada
-
-        #self.mesa_info.value = f'Mesa {mesa.numero} - Capacidad: {mesa.tamaño} personas'
+        self.mesa_info.value = f'Mesa {mesa.numero} - Capacidad: {mesa.tamaño} personas'
+        self.asignar_btn.disabled = mesa.ocupado
 
         e.page.update()
         return None
@@ -173,11 +173,33 @@ class RestauranteGUI:
                     ),
                     ft.Container(height=20),
                     self.tamaño_grupo_input,
+                    self.asignar_btn,
+                    ft.Divider(),
                     self.tipo_item_dropdown,
                     self.items_dropdown
-                ]
-            )
+                ],
+                spacing=10,
+                expand=True
+            ),
+            padding=20,
+            expand=True
         )
+
+    def asignar_cliente(self, e):
+        if not self.mesa_seleccionada:
+            return
+        try:
+            tamaño_grupo = int(self.tamaño_grupo.value)
+            if tamaño_grupo <= 0:
+                return
+            cliente = Cliente(tamaño_grupo)
+            resultado = self.restaurante.asignar_mesa_cliente(cliente, self.mesa_seleccionada.numero)
+
+            if 'asignado' in resultado:
+                self.restaurante.crear_pedido(self.mesa_seleccionada.numero)
+                self.tamaño_grupo_input.value = ''
+        except ValueError:
+            pass
 
     def actualizar_items_menu(self, e):
         tipo = self.tipo_item_dropdown.value
