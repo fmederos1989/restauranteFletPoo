@@ -1,3 +1,6 @@
+from logging import disable
+from wsgiref.validate import validator
+
 import flet as ft
 
 from restaurante import Restaurante
@@ -26,7 +29,7 @@ class RestauranteGUI:
                     ),
                 ft.Tab(text='Cocina',
                        icon=ft.Icons.RESTAURANT,
-                       # content=
+                       content=self.crear_vista_cocina()
                     ),
                 ft.Tab(text='Caja',
                        icon=ft.Icons.POINT_OF_SALE,
@@ -68,6 +71,56 @@ class RestauranteGUI:
             expand=True,
             spacing=0
         )
+
+    def crear_vista_cocina(self):
+        self.lista_pedidos_cocina = ft.ListView(
+            expand=1,
+            spacing=10,
+            padding=20,
+            auto_scroll=True
+        )
+
+        def cambiar_estado_pedido(e,pedido, nuevo_estado):
+            pedido.cambiar_estado(nuevo_estado)
+            self.actualizar_vista_cocina()
+            self.actualizar_ui(e.page)
+            e.page.update()
+
+        def crear_item_pedido(pedido):
+            return ft.Container(
+                content=ft.Column([
+                    ft.Text(f'Mesa {pedido.mesa.numero}', size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text(pedido.obtener_resumen()),
+                    ft.Row([
+                        ft.ElevatedButton('En Preparacion',
+                                          on_click= lambda  e, p=pedido: cambiar_estado_pedido(e,p, 'En Preparacion'),
+                                          disabled=pedido.estado != 'Pendiente',
+                                          style=ft.ButtonStyle(
+                                            bgcolor=ft.Colors.ORANGE_700,
+                                            color=ft.Colors.WHITE
+                                          )),
+                        ft.ElevatedButton('Listo',
+                                          on_click=lambda e, p=pedido: cambiar_estado_pedido(e, p, 'Listo'),
+                                          disabled=pedido.estado != 'En Preparacion',
+                                          style=ft.ButtonStyle(
+                                            bgcolor=ft.Colors.GREEN_700,
+                                            color=ft.Colors.WHITE
+                                          )),
+                        ft.Text(f'Estado: {pedido.estado}', color=ft.Colors.BLUE_200)
+                    ])
+                ]),
+                bgcolor=ft.Colors.BLUE_GREY_900,
+                padding=10,
+                border_radius=10
+            )
+
+        def actualizar_vista_cocina():
+            self.lista_pedidos_cocina.controls.clear()
+            for pedido in self.restaurante.pedidos_activos:
+                if pedido.estado in ['Pendiente', 'En Preparacion']:
+                    self.lista_pedidos_cocina.controls.append(crear_item_pedido(pedido))
+
+        self.actualizar_vista_cocina = actualizar_vista_cocina()
 
     #! Métodos internos de vistas
     def crear_grid_mesas(self):
@@ -116,12 +169,39 @@ class RestauranteGUI:
             )
         return grid
 
+    def actualizar_ui(self, page):
+        nuevo_grid = self.crear_grid_mesas()
+        self.grid_container.content = nuevo_grid
+
+        if self.mesa_seleccionada:
+            if self.mesa_seleccionada.ocupado and self.mesa_seleccionada.pedido_actual:
+                self.resumen_pedido.value = self.mesa_seleccionada.pedido_actual.obtener_resumen()
+            else:
+                self.resumen_pedido.value = ''
+
+            self.asignar_btn.disabled = self.mesa_seleccionada.ocupado
+            self.agregar_item_btn.disabled = not self.mesa_seleccionada.ocupado
+            self.liberar_btn.disabled = not self.mesa_seleccionada.ocupado
+
+            self.actualizar_vista_cocina()
+
+        page.update()
+
 
     def seleccionar_mesa(self, e, numero_mesa):
         self.mesa_seleccionada = self.restaurante.buscar_mesa(numero_mesa)
         mesa = self.mesa_seleccionada
         self.mesa_info.value = f'Mesa {mesa.numero} - Capacidad: {mesa.tamaño} personas'
         self.asignar_btn.disabled = mesa.ocupado
+        self.agregar_item_btn.disabled = not mesa.ocupado
+        self.liberar_btn.disabled = not mesa.ocupado
+
+        if mesa.ocupado and mesa.pedido_actual:
+            self.resumen_pedido.value = mesa.pedido_actual.obtener_resumen()
+        else:
+            self.resumen_pedido.value = ''
+
+        self.actualizar_ui(e.page)
 
         e.page.update()
         return None
@@ -162,6 +242,28 @@ class RestauranteGUI:
             )
         )
 
+        self.agregar_item_btn = ft.ElevatedButton(
+            text='Agregar Item',
+            on_click=self.agregar_item_pedido,
+            disabled=True,
+            style=ft.ButtonStyle(
+                bgcolor=ft.Colors.BLUE_700,
+                color=ft.Colors.WHITE
+            )
+        )
+
+        self.liberar_btn = ft.ElevatedButton(
+            text='Liberar Mesa',
+            on_click=self.liberar_mesa,
+            disabled=True,
+            style=ft.ButtonStyle(
+                bgcolor=ft.Colors.RED_700,
+                color=ft.Colors.WHITE
+            )
+        )
+
+        self.resumen_pedido = ft.Text(value='', size=14)
+
         return ft.Container(
             content=ft.Column(
                 controls=[
@@ -176,7 +278,18 @@ class RestauranteGUI:
                     self.asignar_btn,
                     ft.Divider(),
                     self.tipo_item_dropdown,
-                    self.items_dropdown
+                    self.items_dropdown,
+                    self.agregar_item_btn,
+                    ft.Divider(),
+                    self.liberar_btn,
+                    ft.Divider(),
+                    ft.Text(value='Resumen del Pedido:', size=16, weight=ft.FontWeight.BOLD),
+                    ft.Container(
+                        content=self.resumen_pedido,
+                        bgcolor=ft.Colors.BLUE_GREY_900,
+                        padding=10,
+                        border_radius=10
+                    )
                 ],
                 spacing=10,
                 expand=True
@@ -189,7 +302,7 @@ class RestauranteGUI:
         if not self.mesa_seleccionada:
             return
         try:
-            tamaño_grupo = int(self.tamaño_grupo.value)
+            tamaño_grupo = int(self.tamaño_grupo_input.value)
             if tamaño_grupo <= 0:
                 return
             cliente = Cliente(tamaño_grupo)
@@ -198,6 +311,7 @@ class RestauranteGUI:
             if 'asignado' in resultado:
                 self.restaurante.crear_pedido(self.mesa_seleccionada.numero)
                 self.tamaño_grupo_input.value = ''
+                self.actualizar_ui(e.page)
         except ValueError:
             pass
 
@@ -221,6 +335,25 @@ class RestauranteGUI:
         ]
         if e and e.page:
             e.page.update()
+
+    def agregar_item_pedido(self, e):
+        if not self.mesa_seleccionada or not self.mesa_seleccionada.pedido_actual:
+            return
+        tipo = self.tipo_item_dropdown.value
+        nombre_item = self.items_dropdown.value
+
+        if tipo and nombre_item:
+            item = self.restaurante.obtener_item_menu(tipo, nombre_item)
+            if item:
+                self.mesa_seleccionada.pedido_actual.agregar_item(item)
+                self.actualizar_ui(e.page)
+
+    def liberar_mesa(self,e):
+        if self.mesa_seleccionada:
+            self.restaurante.liberar_mesa(self.mesa_seleccionada.numero)
+            self.actualizar_ui(e.page)
+
+
 
 def main():
     app = RestauranteGUI()

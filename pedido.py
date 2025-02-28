@@ -42,6 +42,6 @@ class Pedido:
             if items:
                 resumen.append(f'\n{categoria.replace('_', ' ').title()}:')
                 for item in items:
-                    resumen.append(f' {item.nombre} x {item.cantidad}: $ {item.calcular_subtotal():.2f }')
+                    resumen.append(f' {item.nombre} x {item.cantidad}: $ {item.calcular_subtotal():.2f}')
         resumen.append(f'\nTotal: ${self.calcular_total():.2f}')
         return '\n'.join(resumen)

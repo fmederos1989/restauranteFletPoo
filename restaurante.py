@@ -1,5 +1,6 @@
 from menu import Menu
 from mesa import Mesa
+from pedido import Pedido
 
 class Restaurante:
     def __init__(self):
@@ -42,7 +43,7 @@ class Restaurante:
 
     def crear_pedido(self, numero_mesa):
         mesa = self.buscar_mesa(numero_mesa)
-        if mesa and mesa.ocupada:
+        if mesa and mesa.ocupado:
             pedido = Pedido(mesa)
             self.pedidos_activos.append(pedido)
             mesa.pedido_actual = pedido
@@ -50,7 +51,7 @@ class Restaurante:
             return pedido
         return None
 
-    def liberara_mesa(self, numero_mesa):
+    def liberar_mesa(self, numero_mesa):
         mesa = self.buscar_mesa(numero_mesa)
         if mesa:
             cliente = mesa.cliente
