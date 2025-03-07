@@ -64,9 +64,16 @@ class RestauranteGUI:
                 ft.VerticalDivider(),
                 ft.Container(
                     width=400,
-                    content=self.crear_panel_gestion(),
+                    content=ft.Column([
+                        ft.Container(
+                            content=self.crear_panel_gestion(),
+                            expand=True,
+                        )
+                    ], 
+                    scroll=ft.ScrollMode.AUTO,
+                    expand=True),
                     expand=True,
-                    
+                    alignment=ft.alignment.top_left
                 )
             ],
             expand=True,
@@ -99,8 +106,12 @@ class RestauranteGUI:
                                           disabled=pedido.estado != 'Listo',
                                           style=ft.ButtonStyle(
                                             bgcolor=ft.colors.GREEN_700,
-                                            color=ft.colors.WHITE
-                                          )),
+                                            color=ft.colors.WHITE,
+                                            shape=ft.RoundedRectangleBorder(radius=5)
+                                        ),
+                                        width=150,
+                                        height=40
+                                        ),
                         ft.Text(f'Total: ${pedido.calcular_total()}', 
                                size=16, 
                                weight=ft.FontWeight.BOLD,
@@ -156,15 +167,23 @@ class RestauranteGUI:
                                           disabled=pedido.estado != 'Pendiente',
                                           style=ft.ButtonStyle(
                                             bgcolor=ft.colors.ORANGE_700,
-                                            color=ft.colors.WHITE
-                                          )),
+                                            color=ft.colors.WHITE,
+                                            shape=ft.RoundedRectangleBorder(radius=5)
+                                        ),
+                                        width=150,
+                                        height=40
+                                          ),
                         ft.ElevatedButton('Listo',
                                           on_click=lambda e, p=pedido: cambiar_estado_pedido(e, p, 'Listo'),
                                           disabled=pedido.estado != 'En Preparacion',
                                           style=ft.ButtonStyle(
                                             bgcolor=ft.colors.GREEN_700,
-                                            color=ft.colors.WHITE
-                                          )),
+                                            color=ft.colors.WHITE,
+                                            shape=ft.RoundedRectangleBorder(radius=5)
+                                        ),
+                                        width=150,
+                                        height=40
+                                         ),
                         ft.Text(f'Estado: {pedido.estado}', color=ft.colors.BLUE_200)
                     ])
                 ]),
@@ -217,13 +236,12 @@ class RestauranteGUI:
                                     alignment=ft.MainAxisAlignment.CENTER,
                                     controls=[
                                         ft.Icon(ft.icons.TABLE_RESTAURANT, color=ft.colors.AMBER_400),
-                                        ft.Text(f'Mesa {mesa.numero}', size=16, weight=ft.FontWeight.BOLD)
+                                        ft.Text(f'Mesa {mesa.numero}', size=16,)
                                     ]
                                 ),
-                                ft.Text(f'Capacidad {mesa.tamaño} personas', size=14),
+                                ft.Text(f'Capacidad: {mesa.tamaño}', size=12),
                                 ft.Text(estado,
                                         size=16,
-                                        weight=ft.FontWeight.BOLD,
                                         color=ft.colors.WHITE
                                     )
                             ]
@@ -308,9 +326,13 @@ class RestauranteGUI:
             disabled=True,
             style=ft.ButtonStyle(
                 bgcolor=ft.colors.GREEN_700,
-                color=ft.colors.WHITE
+                color=ft.colors.WHITE,
+                shape=ft.RoundedRectangleBorder(radius=5)
+            ),
+            width=150,
+            height=40
             )
-        )
+        
 
         self.agregar_item_btn = ft.ElevatedButton(
             text='Agregar Item',
@@ -318,8 +340,11 @@ class RestauranteGUI:
             disabled=True,
             style=ft.ButtonStyle(
                 bgcolor=ft.colors.BLUE_700,
-                color=ft.colors.WHITE
-            )
+                color=ft.colors.WHITE,
+                shape=ft.RoundedRectangleBorder(radius=5)
+            ),
+            width=150,
+            height=40
         )
 
         self.liberar_btn = ft.ElevatedButton(
@@ -328,8 +353,11 @@ class RestauranteGUI:
             disabled=True,
             style=ft.ButtonStyle(
                 bgcolor=ft.colors.RED_700,
-                color=ft.colors.WHITE
-            )
+                color=ft.colors.WHITE,
+                shape=ft.RoundedRectangleBorder(radius=5)
+            ),
+            width=150,
+            height=40
         )
 
         self.resumen_pedido = ft.Text(value='', size=14)
@@ -514,9 +542,13 @@ class RestauranteGUI:
             on_click=agregar_item,
             style=ft.ButtonStyle(
                 bgcolor=ft.colors.GREEN_700,
-                color=ft.colors.WHITE
+                color=ft.colors.WHITE,
+                shape=ft.RoundedRectangleBorder(radius=5)
+            ),
+            width=150,
+            height=40
             )
-        )
+        
 
         actualizar_lista_items()
 
