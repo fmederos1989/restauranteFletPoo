@@ -552,7 +552,7 @@ class RestauranteGUI:
 
 def main():
     app = RestauranteGUI()
-    ft.app(target=app.main)
+    ft.app(target=app.main, view=ft.WEB_BROWSER, port=8080)
 
 if __name__ == '__main__':
     main()
