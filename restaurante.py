@@ -1,6 +1,7 @@
 from menu import Menu
 from mesa import Mesa
 from pedido import Pedido
+import os
 
 class Restaurante:
     def __init__(self):
@@ -8,7 +9,10 @@ class Restaurante:
         self.clientes = []
         self.menu = Menu()
         self.pedidos_activos = []
-        self._inicializar_menu()
+        
+        # Solo inicializar el menú por defecto si no existe un archivo de menú guardado
+        if not os.path.exists(self.menu.archivo_menu):
+            self._inicializar_menu()
 
     def _inicializar_menu(self):
         self.menu.agregar_entrada('Ensalada Cesar', 50)

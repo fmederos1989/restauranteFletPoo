@@ -10,8 +10,8 @@ from cliente import Cliente
 class RestauranteGUI:
     def __init__(self):
         self.restaurante = Restaurante()
-        capacidades = [2, 2, 4, 4, 6, 6]
-        for i in range(1, 7):
+        capacidades = [2, 2, 2, 4, 4, 4, 6, 6, 6]
+        for i in range(1, 10):
             self.restaurante.agregar_mesa(Mesa(i, capacidades[i-1]))
 
     def main(self, page: ft.Page):
@@ -24,20 +24,20 @@ class RestauranteGUI:
             animation_duration=300,
             tabs=[
                 ft.Tab(text='Mesera',
-                       icon=ft.Icons.PERSON,
+                       icon=ft.icons.PERSON,
                        content=self.crear_vista_mesera()
                     ),
                 ft.Tab(text='Cocina',
-                       icon=ft.Icons.RESTAURANT,
+                       icon=ft.icons.RESTAURANT,
                        content=self.crear_vista_cocina()
                     ),
                 ft.Tab(text='Caja',
-                       icon=ft.Icons.POINT_OF_SALE,
-                       # content=
+                       icon=ft.icons.POINT_OF_SALE,
+                       content=self.crear_vista_caja()
                 ),
                 ft.Tab(text='Administración',
-                       icon=ft.Icons.ADMIN_PANEL_SETTINGS,
-                       # content=
+                       icon=ft.icons.ADMIN_PANEL_SETTINGS,
+                       content=self.crear_vista_adm()
                     ),
                 ],
             expand=1,
@@ -72,6 +72,63 @@ class RestauranteGUI:
             spacing=0
         )
 
+    def crear_vista_caja(self):
+        self.lista_pedidos_caja = ft.ListView(
+            expand=1,
+            spacing=10,
+            padding=20,
+            auto_scroll=True
+        )
+
+        def marcar_como_pagado(e, pedido):
+            pedido.cambiar_estado('Pagado')
+            self.restaurante.pedidos_activos.remove(pedido)
+            self.actualizar_vista_caja()
+            self.actualizar_ui(e.page)
+            e.page.update()
+
+        def crear_item_pedido(pedido):
+            return ft.Container(
+                content=ft.Column([
+                    ft.Text(f'Mesa {pedido.mesa.numero}', size=20, weight=ft.FontWeight.BOLD),
+                    ft.Text(pedido.obtener_resumen()),
+                    ft.Row([
+                        ft.ElevatedButton('Marcar como Pagado',
+                                          on_click=lambda e, p=pedido: marcar_como_pagado(e, p),
+                                          disabled=pedido.estado != 'Listo',
+                                          style=ft.ButtonStyle(
+                                            bgcolor=ft.colors.GREEN_700,
+                                            color=ft.colors.WHITE
+                                          )),
+                        ft.Text(f'Total: ${pedido.calcular_total()}', 
+                               size=16, 
+                               weight=ft.FontWeight.BOLD,
+                               color=ft.colors.AMBER_500)
+                    ])
+                ]),
+                bgcolor=ft.colors.BLUE_GREY_900,
+                padding=10,
+                border_radius=10
+            )
+
+        def actualizar_vista_caja():
+            self.lista_pedidos_caja.controls.clear()
+            for pedido in self.restaurante.pedidos_activos:
+                if pedido.estado == 'Listo':
+                    self.lista_pedidos_caja.controls.append(crear_item_pedido(pedido))
+
+        self.actualizar_vista_caja = actualizar_vista_caja
+        self.actualizar_vista_caja()
+        
+        return ft.Container(
+            content=ft.Column([
+                ft.Text('Pedidos Listos para Cobrar', size=20, weight=ft.FontWeight.BOLD),
+                self.lista_pedidos_caja
+            ], expand=True),
+            padding=20,
+            expand=True
+        )
+
     def crear_vista_cocina(self):
         self.lista_pedidos_cocina = ft.ListView(
             expand=1,
@@ -83,6 +140,7 @@ class RestauranteGUI:
         def cambiar_estado_pedido(e,pedido, nuevo_estado):
             pedido.cambiar_estado(nuevo_estado)
             self.actualizar_vista_cocina()
+            self.actualizar_vista_caja()
             self.actualizar_ui(e.page)
             e.page.update()
 
@@ -96,31 +154,41 @@ class RestauranteGUI:
                                           on_click= lambda  e, p=pedido: cambiar_estado_pedido(e,p, 'En Preparacion'),
                                           disabled=pedido.estado != 'Pendiente',
                                           style=ft.ButtonStyle(
-                                            bgcolor=ft.Colors.ORANGE_700,
-                                            color=ft.Colors.WHITE
+                                            bgcolor=ft.colors.ORANGE_700,
+                                            color=ft.colors.WHITE
                                           )),
                         ft.ElevatedButton('Listo',
                                           on_click=lambda e, p=pedido: cambiar_estado_pedido(e, p, 'Listo'),
                                           disabled=pedido.estado != 'En Preparacion',
                                           style=ft.ButtonStyle(
-                                            bgcolor=ft.Colors.GREEN_700,
-                                            color=ft.Colors.WHITE
+                                            bgcolor=ft.colors.GREEN_700,
+                                            color=ft.colors.WHITE
                                           )),
-                        ft.Text(f'Estado: {pedido.estado}', color=ft.Colors.BLUE_200)
+                        ft.Text(f'Estado: {pedido.estado}', color=ft.colors.BLUE_200)
                     ])
                 ]),
-                bgcolor=ft.Colors.BLUE_GREY_900,
+                bgcolor=ft.colors.BLUE_GREY_900,
                 padding=10,
                 border_radius=10
             )
 
         def actualizar_vista_cocina():
-            self.lista_pedidos_cocina.controls.clear()
-            for pedido in self.restaurante.pedidos_activos:
-                if pedido.estado in ['Pendiente', 'En Preparacion']:
-                    self.lista_pedidos_cocina.controls.append(crear_item_pedido(pedido))
+                self.lista_pedidos_cocina.controls.clear()
+                for pedido in self.restaurante.pedidos_activos:
+                    if pedido.estado in ['Pendiente', 'En Preparacion']:
+                        self.lista_pedidos_cocina.controls.append(crear_item_pedido(pedido))
 
-        self.actualizar_vista_cocina = actualizar_vista_cocina()
+        self.actualizar_vista_cocina = actualizar_vista_cocina
+        self.actualizar_vista_cocina()
+
+        return ft.Container(
+            content=ft.Column([
+                ft.Text('Pedidos en Cocina', size=20, weight=ft.FontWeight.BOLD),
+                self.lista_pedidos_cocina
+            ], expand=True),
+            padding=20,
+            expand=True
+        )
 
     #! Métodos internos de vistas
     def crear_grid_mesas(self):
@@ -134,7 +202,7 @@ class RestauranteGUI:
             padding=10
         )
         for mesa in self.restaurante.mesas:
-            color = ft.Colors.GREEN_700 if not mesa.ocupado else ft.Colors.RED_700
+            color = ft.colors.GREEN_700 if not mesa.ocupado else ft.colors.RED_700
             estado = 'Libre' if not mesa.ocupado else 'Ocupada'
 
             grid.controls.append(
@@ -147,7 +215,7 @@ class RestauranteGUI:
                                 ft.Row(
                                     alignment=ft.MainAxisAlignment.CENTER,
                                     controls=[
-                                        ft.Icon(ft.Icons.TABLE_RESTAURANT, color=ft.Colors.AMBER_400),
+                                        ft.Icon(ft.icons.TABLE_RESTAURANT, color=ft.colors.AMBER_400),
                                         ft.Text(f'Mesa {mesa.numero}', size=16, weight=ft.FontWeight.BOLD)
                                     ]
                                 ),
@@ -155,7 +223,7 @@ class RestauranteGUI:
                                 ft.Text(estado,
                                         size=16,
                                         weight=ft.FontWeight.BOLD,
-                                        color=ft.Colors.WHITE
+                                        color=ft.colors.WHITE
                                     )
                             ]
                         ),
@@ -184,6 +252,7 @@ class RestauranteGUI:
             self.liberar_btn.disabled = not self.mesa_seleccionada.ocupado
 
             self.actualizar_vista_cocina()
+            self.actualizar_vista_caja()
 
         page.update()
 
@@ -212,7 +281,7 @@ class RestauranteGUI:
         self.tamaño_grupo_input = ft.TextField(
             label='Tamaño del Grupo',
             input_filter=ft.NumbersOnlyInputFilter(),
-            prefix_icon=ft.Icons.PEOPLE
+            prefix_icon=ft.icons.PEOPLE
         )
 
         self.tipo_item_dropdown = ft.Dropdown(
@@ -237,8 +306,8 @@ class RestauranteGUI:
             on_click=self.asignar_cliente,
             disabled=True,
             style=ft.ButtonStyle(
-                bgcolor=ft.Colors.GREEN_700,
-                color=ft.Colors.WHITE
+                bgcolor=ft.colors.GREEN_700,
+                color=ft.colors.WHITE
             )
         )
 
@@ -247,8 +316,8 @@ class RestauranteGUI:
             on_click=self.agregar_item_pedido,
             disabled=True,
             style=ft.ButtonStyle(
-                bgcolor=ft.Colors.BLUE_700,
-                color=ft.Colors.WHITE
+                bgcolor=ft.colors.BLUE_700,
+                color=ft.colors.WHITE
             )
         )
 
@@ -257,8 +326,8 @@ class RestauranteGUI:
             on_click=self.liberar_mesa,
             disabled=True,
             style=ft.ButtonStyle(
-                bgcolor=ft.Colors.RED_700,
-                color=ft.Colors.WHITE
+                bgcolor=ft.colors.RED_700,
+                color=ft.colors.WHITE
             )
         )
 
@@ -269,7 +338,7 @@ class RestauranteGUI:
                 controls=[
                     ft.Container(
                         content=self.mesa_info,
-                        bgcolor=ft.Colors.BLUE_GREY_900,
+                        bgcolor=ft.colors.BLUE_GREY_900,
                         padding=10,
                         border_radius=10,
                     ),
@@ -286,9 +355,10 @@ class RestauranteGUI:
                     ft.Text(value='Resumen del Pedido:', size=16, weight=ft.FontWeight.BOLD),
                     ft.Container(
                         content=self.resumen_pedido,
-                        bgcolor=ft.Colors.BLUE_GREY_900,
+                        bgcolor=ft.colors.BLUE_GREY_900,
                         padding=10,
-                        border_radius=10
+                        border_radius=10,
+                        width=350,
                     )
                 ],
                 spacing=10,
@@ -352,7 +422,131 @@ class RestauranteGUI:
         if self.mesa_seleccionada:
             self.restaurante.liberar_mesa(self.mesa_seleccionada.numero)
             self.actualizar_ui(e.page)
+            
+    def crear_vista_adm(self):
+        self.nombre_item_input = ft.TextField(
+            label='Nombre del Item',
+            width=200
+        )
+        self.precio_item_input = ft.TextField(
+            label='Precio',
+            input_filter=ft.NumbersOnlyInputFilter(),
+            width=200
+        )
+        self.tipo_item_adm_dropdown = ft.Dropdown(
+            label='Tipo de Item',
+            options=[
+                ft.dropdown.Option('Entrada'),
+                ft.dropdown.Option('Plato Principal'),
+                ft.dropdown.Option('Postre'),
+                ft.dropdown.Option('Bebida'),
+            ],
+            width=200
+        )
+        self.items_lista = ft.ListView(
+            expand=1,
+            spacing=10,
+            padding=20,
+            auto_scroll=True
+        )
 
+        def agregar_item(e):
+            nombre = self.nombre_item_input.value
+            try:
+                precio = int(self.precio_item_input.value)
+                tipo = self.tipo_item_adm_dropdown.value
+                if nombre and precio > 0 and tipo:
+                    if tipo == 'Entrada':
+                        self.restaurante.menu.agregar_entrada(nombre, precio)
+                    elif tipo == 'Plato Principal':
+                        self.restaurante.menu.agregar_plato_principal(nombre, precio)
+                    elif tipo == 'Postre':
+                        self.restaurante.menu.agregar_postre(nombre, precio)
+                    elif tipo == 'Bebida':
+                        self.restaurante.menu.agregar_bebida(nombre, precio)
+                    self.nombre_item_input.value = ''
+                    self.precio_item_input.value = ''
+                    actualizar_lista_items()
+                    e.page.update()
+            except ValueError:
+                pass
+
+        def eliminar_item(e, tipo, nombre):
+            self.restaurante.menu.eliminar_item(tipo, nombre)
+            actualizar_lista_items()
+            e.page.update()
+
+        def actualizar_lista_items():
+            self.items_lista.controls.clear()
+            for tipo, items in [
+                ('Entrada', self.restaurante.menu.entradas),
+                ('Plato Principal', self.restaurante.menu.plato_principal),
+                ('Postre', self.restaurante.menu.postres),
+                ('Bebida', self.restaurante.menu.bebidas)
+            ]:
+                if items:
+                    self.items_lista.controls.append(
+                        ft.Text(f'\n{tipo}s:', size=16, weight=ft.FontWeight.BOLD)
+                    )
+                    for item in items:
+                        self.items_lista.controls.append(
+                            ft.Container(
+                                content=ft.Row(
+                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                    controls=[
+                                        ft.Text(f'{item.nombre} - ${item.precio}'),
+                                        ft.IconButton(
+                                            icon=ft.icons.DELETE,
+                                            icon_color=ft.colors.RED_400,
+                                            on_click=lambda e, t=tipo, n=item.nombre: eliminar_item(e, t, n)
+                                        )
+                                    ]
+                                ),
+                                bgcolor=ft.colors.BLUE_GREY_900,
+                                padding=10,
+                                border_radius=10
+                            )
+                        )
+
+        agregar_btn = ft.ElevatedButton(
+            text='Agregar Item',
+            on_click=agregar_item,
+            style=ft.ButtonStyle(
+                bgcolor=ft.colors.GREEN_700,
+                color=ft.colors.WHITE
+            )
+        )
+
+        actualizar_lista_items()
+
+        return ft.Container(
+            content=ft.Row(
+                controls=[
+                    ft.Container(
+                        width=300,
+                        content=ft.Column([
+                            ft.Text('Agregar Nuevo Item', size=20, weight=ft.FontWeight.BOLD),
+                            self.tipo_item_adm_dropdown,
+                            self.nombre_item_input,
+                            self.precio_item_input,
+                            agregar_btn
+                        ], spacing=20),
+                        padding=20
+                    ),
+                    ft.VerticalDivider(),
+                    ft.Container(
+                        expand=True,
+                        content=ft.Column([
+                            ft.Text('Items del Menú', size=20, weight=ft.FontWeight.BOLD),
+                            self.items_lista
+                        ]),
+                        padding=20
+                    )
+                ],
+                expand=True
+            ),
+            expand=True
+        )
 
 
 def main():

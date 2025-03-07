@@ -1,0 +1,60 @@
+{
+    "entradas": [
+        {
+            "nombre": "Ensalada Cesar",
+            "precio": 50,
+            "cantidad": 1
+        },
+        {
+            "nombre": "Pasta Carbonara",
+            "precio": 60,
+            "cantidad": 1
+        }
+    ],
+    "plato_principal": [
+        {
+            "nombre": "Filete Mignon",
+            "precio": 250,
+            "cantidad": 1
+        },
+        {
+            "nombre": "Tacos de Carne",
+            "precio": 200,
+            "cantidad": 1
+        },
+        {
+            "nombre": "Napolitana",
+            "precio": 250,
+            "cantidad": 1
+        }
+    ],
+    "bebidas": [
+        {
+            "nombre": "Cafe",
+            "precio": 20,
+            "cantidad": 1
+        },
+        {
+            "nombre": "Agua",
+            "precio": 15,
+            "cantidad": 1
+        }
+    ],
+    "postres": [
+        {
+            "nombre": "Flan",
+            "precio": 30,
+            "cantidad": 1
+        },
+        {
+            "nombre": "Tiramisu",
+            "precio": 40,
+            "cantidad": 1
+        },
+        {
+            "nombre": "Flan C/ Dulce de leche",
+            "precio": 150,
+            "cantidad": 1
+        }
+    ]
+}
