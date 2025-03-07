@@ -552,7 +552,9 @@ class RestauranteGUI:
 
 def main():
     app = RestauranteGUI()
-    ft.app(target=app.main, view=ft.WEB_BROWSER, port=8080)
+    # Modificar para permitir el despliegue en Render
+    port = int(os.environ.get("PORT", 8080))
+    ft.app(target=app.main, view=ft.WEB_BROWSER, port=port)
 
 if __name__ == '__main__':
     main()
