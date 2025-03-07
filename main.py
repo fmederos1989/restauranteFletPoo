@@ -1,6 +1,6 @@
 from logging import disable
 from wsgiref.validate import validator
-
+import os  # Agregamos esta importación
 import flet as ft
 
 from restaurante import Restaurante
