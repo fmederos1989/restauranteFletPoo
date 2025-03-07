@@ -65,7 +65,8 @@ class RestauranteGUI:
                 ft.Container(
                     width=400,
                     content=self.crear_panel_gestion(),
-                    expand=True
+                    expand=True,
+                    
                 )
             ],
             expand=True,

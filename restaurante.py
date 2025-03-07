@@ -9,10 +9,11 @@ class Restaurante:
         self.clientes = []
         self.menu = Menu()
         self.pedidos_activos = []
+        self.menu.cargar_menu()
         
         # Solo inicializar el menú por defecto si no existe un archivo de menú guardado
-        if not os.path.exists(self.menu.archivo_menu):
-            self._inicializar_menu()
+        #if not os.path.exists(self.menu.archivo_menu):
+        #    self._inicializar_menu()
 
     def _inicializar_menu(self):
         self.menu.agregar_entrada('Ensalada Cesar', 50)

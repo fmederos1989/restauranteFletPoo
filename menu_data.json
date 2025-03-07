@@ -21,11 +21,6 @@
             "nombre": "Tacos de Carne",
             "precio": 200,
             "cantidad": 1
-        },
-        {
-            "nombre": "Napolitana",
-            "precio": 250,
-            "cantidad": 1
         }
     ],
     "bebidas": [
@@ -49,11 +44,6 @@
         {
             "nombre": "Tiramisu",
             "precio": 40,
-            "cantidad": 1
-        },
-        {
-            "nombre": "Flan C/ Dulce de leche",
-            "precio": 150,
             "cantidad": 1
         }
     ]
